@@ -4,23 +4,47 @@
 </head>
 
 <script>
+    function openDeliciousTab(url,title){
+			var deliciousTab = safari.application.activeBrowserWindow.openTab();
+			deliciousTab.url = 'http://delicious.com/save?v=5&amp;noui&amp;jump=close&amp;url='+url+'&title='+title;
+    }
+    
+    function expandRelative(uri){
+        if(uri.match("^/")){
+            return safari.application.activeBrowserWindow.activeTab.url + uri;
+        }
+        return uri;
+    }
+    
 	function performCommand(event) {
-
-	    if (event.command === "DeliciousToolbarItem") {
+        switch (event.command){
+        case "DeliciousToolbarItem":
 			var currentTabUrl = encodeURIComponent(safari.application.activeBrowserWindow.activeTab.url);
 			var currentTabTitle = encodeURIComponent(safari.application.activeBrowserWindow.activeTab.title);
-
-			var deliciousTab = safari.application.activeBrowserWindow.openTab();
-			deliciousTab.url = 'http://delicious.com/save?v=5&amp;noui&amp;jump=close&amp;url='+currentTabUrl+'&title='+currentTabTitle;
-
-	    }
+            openDeliciousTab(currentTabUrl,currentTabTitle);
+            break;
+        
+        case "DeliciousContextBmark":
+            var url = encodeURIComponent(expandRelative(event.userInfo.uri));
+            console.log("Got uri: " + url);
+            var title = encodeURIComponent(event.userInfo.title);
+            openDeliciousTab(url,title);
+            break;
+        }
 	}
  
 	function validateCommand(event) {
-	    if (event.command === "DeliciousToolbarItem") {
+	    switch (event.command){
+        case "DeliciousToolbarItem":
 	        // Disable the button if there is no URL loaded in the tab.
 	        event.target.disabled = !event.target.browserWindow.activeTab.url;
-	    }
+            break;
+            
+        case "DeliciousContextBmark":
+            console.log("DeliciousContextBmark-Event: " +event.userInfo.uri.length);
+            event.target.disabled = !event.userInfo.uri.length;
+            break;
+        }
 	}
 
 	
